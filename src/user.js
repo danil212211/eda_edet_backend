@@ -8,7 +8,7 @@ function checkExist(a) {
     return typeof a != "undefined" && a != null;
 }
 async function getUserByLog(login) {
-    return await db.query(`SELECT * FROM users WHERE login ='${login}'`).catch(err => {throw err});
+    return await db.query(`SELECT * FROM users WHERE login ='${login}' OR email='${login}'`).catch(err => {throw err});
 }
 let db= database.db;
 let saltRounds=10;
@@ -31,9 +31,11 @@ async function reg(req) {
         salt = await bcrypt.genSalt(saltRounds);
         hash = await bcrypt.hash(pass,salt);
         /* Получили данные и создали хэш с солью */
-
+        console.log(email);
         let ifExist = await getUserByLog(login).catch(err => {throw err});
-        if (isEmptyObject(ifExist)) {
+        let ifExist2 = await getUserByLog(email).catch(err => {throw err});
+
+        if (isEmptyObject(ifExist) && isEmptyObject(ifExist2)) {
             let user=await db.query(`
                     INSERT INTO users (login,email,pass_hash,pass_salt,user_type) 
                     VALUES ('${login}', '${email}' ,'${hash}','${salt}','${userTypes.unverified}')`).catch(err => {throw err});
@@ -61,12 +63,17 @@ async function verification(req) {
     let data= req.query;
     let login=data.login;
     let verificationData=data.data;                            // Получили данные
-
     let user = await getUserByLog(login).catch(err => {throw err});
+    if (isEmptyObject(user)) {
+        return {
+            "code" : 400
+        };
+    }
     let userId = user[0].id;
     let ver = await db.query(`SELECT * FROM user_verification WHERE user_id ='${userId}'`).catch(err => {throw err});
     let verData = ver[0].data;
     let verId= ver[0].id;
+
     if (verData===verificationData) {                  // Получили хэш из базы данных, сверяем. Если одинаковы - подверждаем почту
         await db.query (`UPDATE users SET user_type='${userTypes.verified}' WHERE login='${login}'`).catch(err => {throw err});
         await db.query (`DELETE FROM user_verification WHERE id='${verId}'`).catch(err => {throw err});
@@ -80,9 +87,9 @@ async function verification(req) {
 
 async function log(req) {
     let data= req.query;
-    let login=data.login;
+    let login=data.email;
     let password=data.pass;
-    let user =await getUserByLog(login).catch(err => {throw err});
+    let user = await getUserByLog(login).catch(err => {throw err});
     if (!isEmptyObject(user)) {
         let hash = user[0].pass_hash;
         let ifGood= await bcrypt.compare(password,hash);
