@@ -57,11 +57,45 @@ async function reg(req) {
     };
 
 }
-async function log(req) {
- let data=reg.query;
+async function verification(req) {
+    let data= req.query;
+    let login=data.login;
+    let verificationData=data.data;                            // Получили данные
+
+    let user = await getUserByLog(login).catch(err => {throw err});
+    let userId = user[0].id;
+    let ver = await db.query(`SELECT * FROM user_verification WHERE user_id ='${userId}'`).catch(err => {throw err});
+    let verData = ver[0].data;
+    let verId= ver[0].id;
+    if (verData===verificationData) {                  // Получили хэш из базы данных, сверяем. Если одинаковы - подверждаем почту
+        await db.query (`UPDATE users SET user_type='${userTypes.verified}' WHERE login='${login}'`).catch(err => {throw err});
+        await db.query (`DELETE FROM user_verification WHERE id='${verId}'`).catch(err => {throw err});
+        return {
+            "code" : codes.goodCode
+        }
+    }
+
 
 }
-async function verification(req) {x``
+
+async function log(req) {
+    let data= req.query;
+    let login=data.login;
+    let password=data.pass;
+    let user =await getUserByLog(login).catch(err => {throw err});
+    if (!isEmptyObject(user)) {
+        let hash = user[0].pass_hash;
+        let ifGood= await bcrypt.compare(password,hash);
+        if (ifGood) {
+            return {
+                "code" : codes.goodCode,
+                "hash" : hash
+            };
+        }
+    }
+    return {
+        "code" : codes.badCode
+    };
 }
 module.exports = {
     register : reg,
