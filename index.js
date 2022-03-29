@@ -1,5 +1,5 @@
-const express= requre("express");
-const user = require("./src/user")
+const express= require("express");
+const user = require("./src/user");
 const cors = require("cors");
 const app = express();
 const port = 3000;
