@@ -1,5 +1,6 @@
 const express= require("express");
 const user = require("./src/user");
+const shop = require("./src/shop");
 const cors = require("cors");
 const app = express();
 const port = 3000;
@@ -14,10 +15,19 @@ app.get("/verification",async (req,res) => {
     res.status(200).json(ans);
 
 });
+app.get("/shops",async (req,res) => {
+    let ans= await shop.getShops(req.query.id);
+    res.status(200).json(ans);
+});
+app.get("/discounts",async (req,res) => {
+    let ans= await shop.getDiscounts(req.query.id);
+    res.status(200).json(ans);
+});
 
 app.get("/login", async (req,res) => {
     let ans = await user.login(req);
     res.status(200).json(ans);
 
 });
+
 app.listen(port);

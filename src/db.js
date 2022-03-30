@@ -22,11 +22,7 @@ function handleDisconnect() {      //Хэндл при ошибках в сет�
 
     connection.on('error', function(err) {
         console.log('db lost, handling');
-        if(err.code === 'PROTOCOL_CONNECTION_LOST') {
-            handleDisconnect();
-        } else {
-            throw err;
-        }
+            setTimeout(handleDisconnect ,2000);
     });
 }
 handleDisconnect();

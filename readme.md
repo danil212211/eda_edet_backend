@@ -1,5 +1,5 @@
 #Документация BackEnd edaedet
-Порт - **3000**. Адрес - **edaback.nekodaze.ru**
+Порт - **3000**. Адрес - **edaback.14-bit.ru**
 
 ## База Данных
 
